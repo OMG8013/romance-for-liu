@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机出现合成爱心 · Python转JS版</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a0a23 0%, #1a1a40 50%, #2d1b4e 100%);
+            font-family: "Microsoft YaHei", -apple-system, sans-serif;
+            min-height: 100vh;
+        }
+        #stage {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .note {
+            position: absolute;
+            width: 130px;
+            height: 34px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            user-select: none;
+            white-space: nowrap;
+            padding: 0 8px;
+            will-change: left, top;
+        }
+        .note.visible { opacity: 1; }
+        .note.closing {
+            opacity: 0;
+            transform: scale(0.3);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 12px;
+        }
+        .btn-action {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 30px;
+            background: rgba(255, 105, 180, 0.8);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(255, 105, 180, 0.3);
+        }
+        .btn-action:hover {
+            background: rgba(255, 105, 180, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px rgba(255, 105, 180, 0.5);
+        }
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status-text {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            z-index: 100;
+            text-align: center;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-bar">
+        <span class="arrow">←</span>
+        <span>返回首页</span>
+    </a>
+
+    <div class="status-text" id="statusText">便签随机出现中...</div>
+
+    <div id="stage"></div>
+
+    <div class="controls">
+        <button class="btn-action" id="replayBtn">重新播放</button>
+    </div>
+
+    <div class="info-banner">
+        <strong>来源：</strong>Python tkinter 脚本 → JS 网页版 · 便签随机散布屏幕，随后自动汇聚成完美心形
+    </div>
+
+    <script>
+        // ---- 原始 Python 代码参数 ----
+        const WINDOW_W = 130;  // Python: WINDOW_W = 160 (缩小适配网页)
+        const WINDOW_H = 34;   // Python: WINDOW_H = 38
+        const NUM_WINDOWS = 96; // Python: NUM_WINDOWS = 96
+        const MOVE_STEP = 50;  // Python: MOVE_STEP = 50
+
+        const tips = [
+            '多喝水哦~', '保持微笑呀', '每天都要元气满满', '记得吃水果', '保持好心情',
+            '好好爱自己', '我想你了', '梦想成真', '期待下一次见面', '天冷了，多穿衣服',
+            '愿所有烦恼都消失', '不要熬夜', '爱你哦~'
+        ];
+
+        const bgColors = [
+            '#FFB6C1', '#87CEEB', '#90EE90', '#E6E6FA', '#FFFFE0',
+            '#DDA0DD', '#F08080', '#FFE4C4', '#7FFFD4', '#FFE4E1', '#F0FFF0'
+        ];
+
+        // ---- 心形参数方程（与 Python generate_heart_points 一致）----
+        function generateHeartPoints(numPoints, winW, winH) {
+            const screenW = window.innerWidth;
+            const screenH = window.innerHeight;
+
+            const tList = [];
+            for (let i = 0; i < numPoints; i++) {
+                tList.push(2 * Math.PI * i / numPoints);
+            }
+
+            const raw = tList.map(t => ({
+                x: 16 * Math.pow(Math.sin(t), 3),
+                y: 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)
+            }));
+
+            const xs = raw.map(p => p.x);
+            const ys = raw.map(p => p.y);
+            const minX = Math.min(...xs), maxX = Math.max(...xs);
+            const minY = Math.min(...ys), maxY = Math.max(...ys);
+
+            const usableW = screenW - winW;
+            const usableH = screenH - winH;
+            const scale = Math.min(
+                usableW / (maxX - minX + 0.7),
+                usableH / (maxY - minY + 0.8)
+            );
+
+            const heartW = (maxX - minX) * scale;
+            const heartH = (maxY - minY) * scale;
+            const baseX = (screenW - heartW) / 2;
+            const baseY = (screenH - heartH) / 2;
+
+            const mapped = [];
+            const seen = new Set();
+            for (const { x: x0, y: y0 } of raw) {
+                const nx = x0 - minX;
+                const ny = y0 - minY;
+                let px = Math.floor(baseX + nx * scale);
+                let py = Math.floor(baseY + heartH - ny * scale);
+                px = Math.max(0, Math.min(px, screenW - winW));
+                py = Math.max(0, Math.min(py, screenH - winH));
+                const key = `${px},${py}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    mapped.push({ x: px, y: py });
+                }
+            }
+
+            // 补齐到 numPoints 个
+            while (mapped.length < numPoints) {
+                mapped.push(mapped[mapped.length - 1]);
+            }
+            return mapped.slice(0, numPoints);
+        }
+
+        function randomChoice(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        const stage = document.getElementById('stage');
+        const statusText = document.getElementById('statusText');
+        const replayBtn = document.getElementById('replayBtn');
+        let allNotes = [];
+        let animationRunning = false;
+
+        function start() {
+            if (animationRunning) return;
+            animationRunning = true;
+            replayBtn.disabled = true;
+
+            // 清除之前的便签
+            stage.innerHTML = '';
+            allNotes = [];
+
+            const screenW = window.innerWidth;
+            const screenH = window.innerHeight;
+
+            // 1. 生成随机位置（与 Python points_random 一致）
+            const marginX = WINDOW_W / 2;
+            const marginY = WINDOW_H / 2;
+            const randomPositions = [];
+            for (let i = 0; i < NUM_WINDOWS; i++) {
+                const x = randomInt(marginX, screenW - WINDOW_W - marginX);
+                const y = randomInt(marginY, screenH - WINDOW_H - marginY);
+                randomPositions.push({ x, y });
+            }
+
+            // 2. 生成心形位置
+            const heartPositions = generateHeartPoints(NUM_WINDOWS, WINDOW_W, WINDOW_H);
+
+            // 3. 创建便签（与 Python 创建窗口一致，延迟 0.015s）
+            statusText.textContent = '便签随机出现中...';
+            let created = 0;
+
+            randomPositions.forEach((pos, idx) => {
+                const note = document.createElement('div');
+                note.className = 'note';
+                note.style.left = pos.x + 'px';
+                note.style.top = pos.y + 'px';
+                note.style.background = randomChoice(bgColors);
+                note.textContent = randomChoice(tips);
+                note.dataset.targetX = heartPositions[idx].x;
+                note.dataset.targetY = heartPositions[idx].y;
+
+                stage.appendChild(note);
+                allNotes.push(note);
+
+                // 0.015s 延迟显示
+                setTimeout(() => {
+                    note.classList.add('visible');
+                    created++;
+                    if (created === NUM_WINDOWS) {
+                        // 全部出现后，等待 0.9s 开始移动（与 Python root.after(900, move_to_heart) 一致）
+                        statusText.textContent = '便签正在汇聚成爱心...';
+                        setTimeout(() => moveToHeart(), 900);
+                    }
+                }, idx * 15);
+            });
+        }
+
+        function moveToHeart() {
+            // 与 Python move_to_heart 一致：36 步，每步最多移动 50px
+            const maxSteps = 36;
+            let step = 0;
+
+            function stepMove() {
+                let allDone = true;
+
+                allNotes.forEach(note => {
+                    const currentLeft = parseFloat(note.style.left);
+                    const currentTop = parseFloat(note.style.top);
+                    const targetX = parseFloat(note.dataset.targetX);
+                    const targetY = parseFloat(note.dataset.targetY);
+
+                    const dx = targetX - currentLeft;
+                    const dy = targetY - currentTop;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist >= 2) {
+                        const move = Math.min(MOVE_STEP, dist);
+                        const nx = currentLeft + Math.floor(move * dx / dist);
+                        const ny = currentTop + Math.floor(move * dy / dist);
+                        note.style.left = nx + 'px';
+                        note.style.top = ny + 'px';
+                        allDone = false;
+                    } else {
+                        note.style.left = targetX + 'px';
+                        note.style.top = targetY + 'px';
+                    }
+                });
+
+                step++;
+
+                if (allDone || step >= maxSteps) {
+                    // 确保最终位置精确
+                    allNotes.forEach(note => {
+                        note.style.left = note.dataset.targetX + 'px';
+                        note.style.top = note.dataset.targetY + 'px';
+                    });
+                    statusText.textContent = '爱心合成完成！停留中...';
+
+                    // 4.3 秒后关闭（与 Python root.after(4300, close_all) 一致）
+                    setTimeout(() => closeAll(), 4300);
+                } else {
+                    // 6.5ms 间隔（与 Python time.sleep(0.0065) 一致）
+                    setTimeout(stepMove, 6.5);
+                }
+            }
+
+            stepMove();
+        }
+
+        function closeAll() {
+            statusText.textContent = '便签正在消失...';
+            allNotes.forEach((note, i) => {
+                setTimeout(() => {
+                    note.classList.add('closing');
+                }, i * 10);
+            });
+
+            setTimeout(() => {
+                stage.innerHTML = '';
+                allNotes = [];
+                statusText.textContent = '点击「重新播放」再次观看';
+                animationRunning = false;
+                replayBtn.disabled = false;
+            }, allNotes.length * 10 + 600);
+        }
+
+        replayBtn.addEventListener('click', start);
+
+        // 初始播放
+        start();
+
+        // 窗口大小变化时重新播放
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            if (animationRunning) return;
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (!animationRunning) start();
+            }, 300);
+        });
+    </script>
+</body>
+</html>

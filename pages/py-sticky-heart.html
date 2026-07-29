@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>便签爱心 · Python转JS版</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: "Microsoft YaHei", -apple-system, sans-serif;
+            min-height: 100vh;
+        }
+        #stage {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .note {
+            position: absolute;
+            width: 160px;
+            min-height: 44px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            user-select: none;
+            white-space: nowrap;
+            padding: 8px 12px;
+        }
+        .note.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .note.closing {
+            opacity: 0;
+            transform: scale(0.3) translateY(30px);
+        }
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 12px;
+        }
+        .btn-action {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 30px;
+            background: rgba(255, 105, 180, 0.8);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(255, 105, 180, 0.3);
+        }
+        .btn-action:hover {
+            background: rgba(255, 105, 180, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px rgba(255, 105, 180, 0.5);
+        }
+        .status-text {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-bar">
+        <span class="arrow">←</span>
+        <span>返回首页</span>
+    </a>
+
+    <div class="status-text" id="statusText">正在生成爱心便签...</div>
+
+    <div id="stage"></div>
+
+    <div class="controls">
+        <button class="btn-action" id="replayBtn">重新生成</button>
+    </div>
+
+    <div class="info-banner">
+        <strong>来源：</strong>Python tkinter 脚本 → JS 网页版 · 便签以心形曲线排列，逐个弹出
+    </div>
+
+    <script>
+        // ---- 原始 Python 代码中的数据 ----
+        const tips = [
+            '多喝水哦~', '保持微笑呀', '每天都要元气满满', '记得吃水果', '保持好心情',
+            '好好爱自己', '我想你了', '梦想成真', '期待下一次见面', '天冷了，多穿衣服',
+            '愿所有烦恼都消失', '保持微笑呀', '别熬夜', '爱你哦~'
+        ];
+
+        const bgColors = [
+            '#FFB6C1', '#87CEEB', '#90EE90', '#E6E6FA', '#FFFFE0',
+            '#DDA0DD', '#F08080', '#FFE4C4', '#7FFFD4', '#FFE4E1', '#F0FFF0'
+        ];
+
+        // ---- 心形参数方程（与 Python 代码一致）----
+        function generateHeartPoints(numPoints, stageW, stageH) {
+            const points = [];
+            for (let i = 0; i < numPoints; i++) {
+                const t = 2 * Math.PI * i / numPoints;
+                const x0 = 16 * Math.pow(Math.sin(t), 3);
+                const y0 = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+                points.push({ x: x0, y: y0 });
+            }
+
+            const xs = points.map(p => p.x);
+            const ys = points.map(p => p.y);
+            let minX = Math.min(...xs), maxX = Math.max(...xs);
+            let minY = Math.min(...ys), maxY = Math.max(...ys);
+            const spanX = Math.max(1e-6, maxX - minX);
+            const spanY = Math.max(1e-6, maxY - minY);
+
+            const noteW = 160, noteH = 50;
+            const marginX = Math.max(20, noteW / 2);
+            const marginY = Math.max(20, noteH / 2);
+            const usableW = Math.max(1, stageW - 2 * marginX - noteW);
+            const usableH = Math.max(1, stageH - 2 * marginY - noteH);
+
+            const mapped = [];
+            const seen = new Set();
+            for (const { x: x0, y: y0 } of points) {
+                const nx = (x0 - minX) / spanX;
+                const ny = (y0 - minY) / spanY;
+                let px = Math.round(marginX + nx * usableW);
+                let py = Math.round(marginY + (1 - ny) * usableH);
+                px = Math.max(0, Math.min(px, stageW - noteW));
+                py = Math.max(0, Math.min(py, stageH - noteH));
+                const key = `${px},${py}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    mapped.push({ x: px, y: py });
+                }
+            }
+            return mapped;
+        }
+
+        const stage = document.getElementById('stage');
+        const statusText = document.getElementById('statusText');
+        const replayBtn = document.getElementById('replayBtn');
+        let allNotes = [];
+        let closeTimer = null;
+
+        function randomChoice(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function createNotes() {
+            // 清除之前的便签和定时器
+            stage.innerHTML = '';
+            allNotes = [];
+            if (closeTimer) clearTimeout(closeTimer);
+
+            const stageW = window.innerWidth;
+            const stageH = window.innerHeight;
+
+            // 生成爱心点（与 Python 中 desired_points = 160 一致）
+            const points = generateHeartPoints(160, stageW, stageH);
+            statusText.textContent = `正在生成 ${points.length} 个爱心便签...`;
+
+            points.forEach((pt, i) => {
+                const note = document.createElement('div');
+                note.className = 'note';
+                note.style.left = pt.x + 'px';
+                note.style.top = pt.y + 'px';
+                note.style.background = randomChoice(bgColors);
+                note.textContent = randomChoice(tips);
+
+                stage.appendChild(note);
+                allNotes.push(note);
+
+                // 逐个出现，延迟 0.12s（与 Python time.sleep(0.12) 一致）
+                setTimeout(() => {
+                    note.classList.add('visible');
+                }, i * 120);
+            });
+
+            // 全部出现后，停留 12 秒（与 Python hold_seconds = 12 一致）
+            const totalTime = points.length * 120 + 500;
+            setTimeout(() => {
+                statusText.textContent = '爱心已完成，停留中...';
+            }, totalTime);
+
+            closeTimer = setTimeout(() => {
+                closeAllNotes();
+            }, totalTime + 12000);
+        }
+
+        function closeAllNotes() {
+            statusText.textContent = '便签正在消失...';
+            allNotes.forEach((note, i) => {
+                setTimeout(() => {
+                    note.classList.add('closing');
+                }, i * 20);
+            });
+
+            setTimeout(() => {
+                stage.innerHTML = '';
+                statusText.textContent = '点击「重新生成」再次播放';
+            }, allNotes.length * 20 + 500);
+        }
+
+        replayBtn.addEventListener('click', createNotes);
+
+        // 初始播放
+        createNotes();
+
+        // 窗口大小变化时重新生成
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(createNotes, 300);
+        });
+    </script>
+</body>
+</html>
