@@ -548,23 +548,22 @@ body.site-bg {
 }
 
 /* ===========================
-   Music Toggle Button
+   Background Music Toggle Button
    =========================== */
 .music-toggle {
     position: fixed;
     bottom: 24px;
     right: 24px;
-    z-index: 9998;
+    z-index: 10001;
     width: 52px;
     height: 52px;
     border-radius: 50%;
     border: none;
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     box-shadow: 0 4px 20px rgba(255, 105, 180, 0.25);
-    font-size: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -578,6 +577,18 @@ body.site-bg {
     background: #fff;
 }
 
+.music-toggle .music-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.music-toggle .music-icon-wrap svg {
+    display: block;
+}
+
+/* Playing state — pink gradient */
 .music-toggle.playing {
     background: linear-gradient(135deg, #FF6B9D, #C44569);
     color: #fff;
@@ -598,23 +609,64 @@ body.site-bg {
     50% { transform: scale(1.15); opacity: 0; }
 }
 
-/* Music note bounce when playing */
-.music-toggle.playing .music-icon {
-    animation: note-bounce 0.6s ease-in-out infinite alternate;
+/* Pending state — waiting for user interaction (autoplay blocked) */
+.music-toggle.pending {
+    animation: pending-bounce 1.5s ease-in-out infinite;
 }
 
-@keyframes note-bounce {
-    from { transform: translateY(0); }
-    to { transform: translateY(-3px); }
+@keyframes pending-bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
+.music-toggle.pending::after {
+    content: '点击播放';
+    position: absolute;
+    right: 62px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 107, 157, 0.95);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    animation: tip-fade-in 0.5s ease 0.3s forwards;
+}
+
+@keyframes tip-fade-in {
+    to { opacity: 1; }
+}
+
+/* Loading spinner */
+.music-toggle .music-icon-wrap svg[stroke] {
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 @media (max-width: 480px) {
     .music-toggle {
         width: 46px;
         height: 46px;
-        font-size: 19px;
         bottom: 16px;
         right: 16px;
+    }
+
+    .music-toggle .music-icon-wrap svg {
+        width: 19px;
+        height: 19px;
+    }
+
+    .music-toggle.pending::after {
+        right: 54px;
+        font-size: 11px;
     }
 }
 

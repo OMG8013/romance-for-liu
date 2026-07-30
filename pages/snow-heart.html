@@ -115,7 +115,6 @@
         }
         @keyframes snowfall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(100vh) rotate(360deg);opacity:0;}}
 
-        #bgMusic{display:none;}
     </style>
 </head>
 <body>
@@ -131,11 +130,6 @@
     <div class="controls">
         <button class="btn" id="replay">重放 / 切换背景</button>
     </div>
-
-    <audio id="bgMusic" loop>
-        <source src="https://lf26-music-east.douyinstatic.com/obj/ies-music-hj/7495920705440140091.mp3" type="audio/mpeg">
-        <source src="https://lf26-music-east.douyinstatic.com/obj/ies-music-hj/7495920705440140091.mp3" type="audio/ogg">
-    </audio>
 
 <script>
 const tips=[
@@ -153,7 +147,6 @@ const tips=[
 const stage  = document.getElementById('stage');
 const replay = document.getElementById('replay');
 const title  = document.getElementById('title');
-const bgMusic = document.getElementById('bgMusic');
 let dark = false;
 let eco = false;
 let snowRunning = false;
@@ -286,12 +279,6 @@ function play(){
     lockedCount = 0;
     for(let i=0;i<TOTAL;i++) createMsg(i,TOTAL);
     setTimeout(()=>{ title.style.opacity = 1; }, 1400);
-    playMusic();
-}
-
-function playMusic() {
-    bgMusic.currentTime = 0;
-    bgMusic.play().catch(error => { console.log('音乐播放需要用户交互:', error); });
 }
 
 function createSnow(){
@@ -369,11 +356,8 @@ window.addEventListener('resize', ()=>{
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(()=> play(), 150);
 });
-
-document.addEventListener('click', () => {
-    if (bgMusic.paused) { playMusic(); }
-}, { once: true });
 </script>
 <script src="../js/transitions.js"></script>
+<script src="../js/background-music.js"></script>
 </body>
 </html>
