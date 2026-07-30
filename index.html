@@ -157,6 +157,11 @@
         <p>送给我的小刘同学</p>
     </footer>
 
+    <!-- Music Toggle Button -->
+    <button id="music-toggle" class="music-toggle" aria-label="播放背景音乐" title="点击开关背景音乐">
+        <span class="music-icon">🎵</span>
+    </button>
+
     <script>
     (function() {
         // 起始时间：2026年5月2日 16:02:00（本地时区）
@@ -243,7 +248,11 @@
             setInterval(updateTimer, 1000);
         }, delay);
     })();
+
+    // Page Transitions + Ambient Music
     </script>
+    <script src="js/transitions.js"></script>
+    <script src="js/ambient-music.js"></script>
 
 </body>
 </html>
