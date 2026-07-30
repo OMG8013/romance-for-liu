@@ -1,14 +1,16 @@
 /**
  * Background Music — Global Audio Player
- * Uses a real MP3 file hosted on GitHub Releases.
+ * Uses a local MP3 file from assets/source/.
  * Auto-injects a floating play/pause button on every page.
  * Persists playback state across page navigation via localStorage.
  */
 (function () {
     'use strict';
 
-    // GitHub Release URL — permanent public link
-    var MUSIC_URL = 'https://github.com/OMG8013/romance-for-liu/releases/download/music-v2/20110102.mp3';
+    // Local MP3 file — resolve relative path based on current page depth
+    // (root pages → assets/source/, pages/ subdir → ../assets/source/)
+    var inPagesDir = window.location.pathname.indexOf('/pages/') !== -1;
+    var MUSIC_URL = (inPagesDir ? '../' : '') + 'assets/source/20110102.mp3';
 
     var STORAGE_KEY_PLAYING = 'romance-bg-playing';
     var STORAGE_KEY_TIME = 'romance-bg-time';
