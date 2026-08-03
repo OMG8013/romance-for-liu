@@ -16,14 +16,14 @@
         'pages/snow-heart.html':      '6.mp3',  // 雪花爱心破碎
         'pages/py-sticky-heart.html': '4.mp3',  // 便签爱心
         'pages/py-random-heart.html': '6.mp3'   // 随机出现合成爱心
-        // 首页及其他未指定页面 → 1.mp3 (default)
+        // 首页及其他未指定页面 → 6.mp3 (default)
     };
 
     // ---- Detect current page ----
     var inPagesDir = window.location.pathname.indexOf('/pages/') !== -1;
     var filename = window.location.pathname.split('/').pop() || 'index.html';
     var pageKey = inPagesDir ? 'pages/' + filename : filename;
-    var musicFile = PAGE_MUSIC[pageKey] || '1.mp3';
+    var musicFile = PAGE_MUSIC[pageKey] || '6.mp3';
     var MUSIC_URL = (inPagesDir ? '../' : '') + 'assets/source/' + musicFile;
 
     // ---- Storage keys (time is per-music-file) ----
