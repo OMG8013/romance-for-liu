@@ -1,19 +1,34 @@
 /**
- * Background Music — Global Audio Player
- * Uses a local MP3 file from assets/source/.
+ * Background Music — Global Audio Player (per-page music)
+ * Uses local MP3 files from assets/source/.
+ * Each page maps to a specific music file; playback position is saved per-file.
  * Auto-injects a floating play/pause button on every page.
- * Persists playback state across page navigation via localStorage.
  */
 (function () {
     'use strict';
 
-    // Local MP3 file — resolve relative path based on current page depth
-    // (root pages → assets/source/, pages/ subdir → ../assets/source/)
-    var inPagesDir = window.location.pathname.indexOf('/pages/') !== -1;
-    var MUSIC_URL = (inPagesDir ? '../' : '') + 'assets/source/1.mp3';
+    // ---- Page → music file mapping ----
+    var PAGE_MUSIC = {
+        'pages/love1.html':           '2.mp3',  // 心形文字与鲜花爆炸
+        'pages/love2.html':           '3.mp3',  // 爱心粒子
+        'pages/love3.html':           '5.mp3',  // I LOVE U 文字雨+爱心
+        'pages/love4.html':           '4.mp3',  // 便签墙
+        'pages/snow-heart.html':      '6.mp3',  // 雪花爱心破碎
+        'pages/py-sticky-heart.html': '4.mp3',  // 便签爱心
+        'pages/py-random-heart.html': '6.mp3'   // 随机出现合成爱心
+        // 首页及其他未指定页面 → 1.mp3 (default)
+    };
 
+    // ---- Detect current page ----
+    var inPagesDir = window.location.pathname.indexOf('/pages/') !== -1;
+    var filename = window.location.pathname.split('/').pop() || 'index.html';
+    var pageKey = inPagesDir ? 'pages/' + filename : filename;
+    var musicFile = PAGE_MUSIC[pageKey] || '1.mp3';
+    var MUSIC_URL = (inPagesDir ? '../' : '') + 'assets/source/' + musicFile;
+
+    // ---- Storage keys (time is per-music-file) ----
     var STORAGE_KEY_PLAYING = 'romance-bg-playing';
-    var STORAGE_KEY_TIME = 'romance-bg-time';
+    var STORAGE_KEY_TIME = 'romance-bg-time-' + musicFile;
     var STORAGE_KEY_VOL = 'romance-bg-vol';
 
     // ---- Create <audio> element ----
@@ -91,13 +106,6 @@
         try {
             localStorage.setItem(STORAGE_KEY_TIME, String(audio.currentTime));
         } catch (e) {}
-    }
-
-    function restoreTime() {
-        var saved = parseFloat(localStorage.getItem(STORAGE_KEY_TIME) || '0');
-        if (saved > 0 && audio.duration && saved < audio.duration) {
-            audio.currentTime = saved;
-        }
     }
 
     function play() {
@@ -232,7 +240,7 @@
                 tryPlay();
             } else {
                 audio.addEventListener('loadedmetadata', tryPlay, { once: true });
-                // Fallback: try after 1s even if metadata doesn't fire
+                // Fallback: try after 1.5s even if metadata doesn't fire
                 setTimeout(function () {
                     if (state === 'pending') tryPlay();
                 }, 1500);
