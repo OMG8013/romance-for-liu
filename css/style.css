@@ -327,8 +327,8 @@ body.site-bg {
 /* ---- Love Timer ---- */
 .love-timer {
     text-align: center;
-    padding: 10px 24px 50px;
-    max-width: 800px;
+    padding: 10px 24px 60px;
+    max-width: 900px;
     margin: 0 auto;
     animation: fadeInUp 0.8s ease-out;
 }
@@ -339,9 +339,9 @@ body.site-bg {
 }
 
 .timer-label {
-    font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
     color: var(--color-text-light);
-    margin-bottom: 24px;
+    margin-bottom: 28px;
     font-weight: 500;
     letter-spacing: 1px;
 }
@@ -357,7 +357,7 @@ body.site-bg {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    gap: 12px;
+    gap: 18px;
     flex-wrap: wrap;
 }
 
@@ -365,12 +365,12 @@ body.site-bg {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
 }
 
 .timer-digits {
     display: flex;
-    gap: 4px;
+    gap: 6px;
 }
 
 .digit-roller {
@@ -380,13 +380,13 @@ body.site-bg {
     overflow: hidden;
     position: relative;
     background: linear-gradient(145deg, #FF6B9D, #C44569);
-    border-radius: 10px;
+    border-radius: 14px;
     color: #fff;
     font-weight: 800;
-    font-size: clamp(1.8rem, 6vw, 3rem);
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
     line-height: 1.15;
     text-align: center;
-    box-shadow: 0 6px 16px rgba(255, 107, 157, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 24px rgba(255, 107, 157, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .digit-strip {
@@ -404,17 +404,19 @@ body.site-bg {
 }
 
 .timer-unit-label {
-    font-size: clamp(0.8rem, 2vw, 1rem);
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
     color: var(--color-text-light);
     font-weight: 600;
     letter-spacing: 2px;
 }
 
 @media (max-width: 480px) {
-    .timer-display { gap: 6px; }
-    .timer-digits { gap: 3px; }
-    .digit-roller { font-size: 1.5rem; border-radius: 8px; }
-    .timer-unit-label { font-size: 0.75rem; letter-spacing: 1px; }
+    .timer-display { gap: 10px; }
+    .timer-digits { gap: 4px; }
+    .digit-roller { font-size: 2rem; border-radius: 10px; }
+    .timer-unit-label { font-size: 0.95rem; letter-spacing: 1px; }
+    .timer-unit { gap: 10px; }
+    .love-timer { padding: 10px 16px 50px; }
 }
 
 /* ---- Effect Page Wrapper ---- */
