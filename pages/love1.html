@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>心形文字与鲜花爆炸效果</title>
+  <title>心形文字与鲜花爆炸</title>
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -92,7 +92,7 @@
 
   <!-- 信息提示 -->
   <div class="info-banner">
-    <strong>提示：</strong>文字飘入组成心形后，点击「绽放爱意」触发鲜花爆炸效果
+    <strong>提示：</strong>文字飘入组成心形后，点击「绽放爱意」触发鲜花爆炸
   </div>
 
   <script>
@@ -222,7 +222,7 @@
         item.element.style.top = `${startY}px`;
         item.element.style.opacity = '0';
 
-        // 延迟动画，创造依次飘入的效果
+        // 延迟动画，创造依次飘入的 
         setTimeout(() => {
           // 动画到目标位置
           item.element.style.left = `${item.targetX}px`;
@@ -240,7 +240,7 @@
       });
     }
 
-    // 爆炸效果：心形变成满屏鲜花
+    // 爆炸 ：心形变成满屏鲜花
     function explodeHeart() {
       // 隐藏爆炸按钮
       explodeBtn.classList.add('opacity-0');
@@ -251,7 +251,7 @@
       // 文字元素爆炸消失
       heartParams.textElements.forEach((item, index) => {
         setTimeout(() => {
-          // 随机方向的爆炸效果
+          // 随机方向的爆炸 
           const angle = Math.random() * Math.PI * 2;
           const distance = Math.random() * 300 + 100;
           const explodeX = Math.cos(angle) * distance;
@@ -300,7 +300,7 @@
         flower.style.transform = `translate(-50%, -50%) translate(${Math.cos(angle) * distance * 0.8}px, ${Math.sin(angle) * distance * 0.8}px) rotate(${Math.random() * 360}deg)`;
         flower.style.transition = `all 1.2s cubic-bezier(0.18, 0.89, 0.32, 1.28)`;
 
-        // 轻微浮动效果
+        // 轻微浮动 
         setTimeout(() => {
           flower.classList.add('float-animation');
         }, 1200);
