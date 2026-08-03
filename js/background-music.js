@@ -10,7 +10,7 @@
     // Local MP3 file — resolve relative path based on current page depth
     // (root pages → assets/source/, pages/ subdir → ../assets/source/)
     var inPagesDir = window.location.pathname.indexOf('/pages/') !== -1;
-    var MUSIC_URL = (inPagesDir ? '../' : '') + 'assets/source/20110102.mp3';
+    var MUSIC_URL = (inPagesDir ? '../' : '') + 'assets/source/1.mp3';
 
     var STORAGE_KEY_PLAYING = 'romance-bg-playing';
     var STORAGE_KEY_TIME = 'romance-bg-time';
